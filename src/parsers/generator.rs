@@ -2,7 +2,7 @@ use std::path::Path;
 
 use clap::ArgMatches;
 
-use crate::commands::generator::GeneratorConfig;
+use crate::workers::generator::GeneratorConfig;
 
 pub fn parse_generator_options(sub_matches: &ArgMatches) {
     match sub_matches.subcommand() {

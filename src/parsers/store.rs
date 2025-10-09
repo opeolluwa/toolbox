@@ -4,7 +4,7 @@ use clap::ArgMatches;
 use rusqlite::Connection;
 
 use crate::{
-    commands::store::StoreConfig,
+    workers::store::StoreConfig,
     helpers::{console::LogMessage, parser::extract_command_argument},
 };
 
