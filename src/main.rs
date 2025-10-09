@@ -4,7 +4,7 @@ use clap::command;
 
 use lib_toolbox::{
     config::database::AppDatabase,
-    subcommands::{
+    commands::{
         generate::generate_command, script::script_command, self_cmd::self_command,
         store::store_command,
     },
@@ -18,7 +18,7 @@ fn main() -> Result<(), AppError> {
         .subcommand(script_command())
         .get_matches();
 
-    lib_toolbox::parser::parse_commands(matches, AppDatabase::init()?);
+    lib_toolbox::toolbox::parse_commands(matches, AppDatabase::init()?);
 
     Ok(())
 }

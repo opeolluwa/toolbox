@@ -20,6 +20,7 @@ path="src/lib.rs"
 chrono = "0.4.40"
 clap = { version = "4.5.32", features = ["cargo"] }
 console = "0.15.11"
+deno_core = "0.362.0"
 dialoguer = { version = "0.10.4", features = ["fuzzy-select", "completion"] }
 dirs = "5.0.1"
 include_dir = "0.7.4"
