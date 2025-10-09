@@ -4,7 +4,7 @@ pub mod database;
 pub mod config;
 pub mod errors;
 pub mod helpers;
-pub mod parser;
+pub mod toolbox;
 pub mod parsers;
-pub mod subcommands;
+pub mod commands;
 
