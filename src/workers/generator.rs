@@ -52,9 +52,6 @@ impl GeneratorConfig {
 
         // Case 1: File exists but overwriting not allowed
         if file_exists && !self.force {
-            LogMessage::error(
-                "A README.md file already exists. Use the --force flag to overwrite it.",
-            );
             return Err(FsError::OperationError(
                 "README.md already exists — use --force to overwrite".to_string(),
             ));
@@ -64,7 +61,6 @@ impl GeneratorConfig {
         if file_exists && self.force {
             if self.back_up {
                 if let Err(error) = fs::copy(&file_path, &backup_path) {
-                    LogMessage::error(&format!("Failed to back up README.md: {}", error));
                     return Err(FsError::OperationError(error.to_string()));
                 }
                 LogMessage::info(&format!("Backup created at {:?}", backup_path));
@@ -89,11 +85,6 @@ impl GeneratorConfig {
 
         // Case 3: Create new README template
         Self::create_readme_template(&file_path)?;
-        LogMessage::success(&format!(
-            "README.md successfully created at {:?}",
-            file_path
-        ));
-
         Ok(())
     }
 
@@ -125,11 +116,6 @@ impl GeneratorConfig {
         }
 
         Self::create_git_ignore_template(&file_path)?;
-        LogMessage::success(&format!(
-            ".gitignore file successfully created at {:?}",
-            file_path
-        ));
-
         Ok(())
     }
 
