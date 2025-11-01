@@ -9,7 +9,7 @@ license = "Apache-2.0"
 
 
 [[bin]]
-name="toolbox"
+name="tb"
 path="src/main.rs"
 
 [lib]
@@ -17,15 +17,14 @@ name="lib_toolbox"
 path="src/lib.rs"
 
 [dependencies]
+boa_engine = "0.21.0"
 chrono = "0.4.40"
-clap = { version = "4.5.32", features = ["cargo"] }
+clap = { version = "4.5.32", features = ["cargo", "unstable-doc"] }
 console = "0.15.11"
-deno_core = "0.362.0"
 dialoguer = { version = "0.10.4", features = ["fuzzy-select", "completion"] }
 dirs = "5.0.1"
 include_dir = "0.7.4"
 lazy_static = "1.5.0"
-ratatui = "0.29.0"
 rusqlite = { version = "0.34.0", features = [
     "backup",
     "bundled",
@@ -33,5 +32,6 @@ rusqlite = { version = "0.34.0", features = [
     "serde_json",
 ] }
 serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.145"
 thiserror = "2.0.12"
 uuid = { version = "1.16.0", features = ["v4"] }
