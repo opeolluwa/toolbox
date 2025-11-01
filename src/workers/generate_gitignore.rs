@@ -8,7 +8,7 @@
         let backup_path = Path::new(&self.base_path).join(".gitignore").join(".bak");
 
         if file_exists && !allow_over_write {
-            "a .gitignorefile already exist on the selectd path, use the --force flag to overwrite it".to_string();
+            "a .gitignore already exist on the select path, use the --force flag to overwrite it".to_string();
             std::process::exit(1);
         } else if file_exists && allow_over_write {
             fs::remove_file(file_path).map_err(|err| FsError::OperationError(err.to_string()))?

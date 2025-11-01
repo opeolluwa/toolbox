@@ -5,11 +5,8 @@ use std::path::{Path, PathBuf};
 
 use clap::ArgMatches;
 use console::Term;
-use dialoguer::theme::ColorfulTheme;
-use dialoguer::Confirm;
-use dialoguer::FuzzySelect;
-use serde::Deserialize;
-use serde::Serialize;
+use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect};
+use serde::{Deserialize, Serialize};
 
 use crate::constants::SOURCE_DIR;
 use crate::errors::file_system::FsError;
@@ -21,6 +18,7 @@ pub struct GeneratorConfig {
     pub base_path: PathBuf,
     pub back_up: bool,
 }
+
 impl GeneratorConfig {
     pub fn new(force: bool, base_path: PathBuf, back_up: bool) -> Self {
         Self {
@@ -29,87 +27,112 @@ impl GeneratorConfig {
             back_up,
         }
     }
+
     pub fn parse_options(command_arguments: &ArgMatches) -> Self {
-        let mut base_path = ".".into();
-        let mut force: bool = false;
-        let mut back_up: bool = false;
-
-        if let Some(force_flag) = command_arguments.get_one::<bool>("force") {
-            force = *force_flag;
-        };
-
-        if let Some(base_path_flag) = command_arguments.get_one::<String>("path") {
-            base_path = base_path_flag.to_owned();
-        };
-
-        if let Some(back_up_flag) = command_arguments.get_one::<bool>("backup") {
-            back_up = *back_up_flag;
-        };
+        let force = *command_arguments.get_one::<bool>("force").unwrap_or(&false);
+        let back_up = *command_arguments
+            .get_one::<bool>("backup")
+            .unwrap_or(&false);
+        let base_path = command_arguments
+            .get_one::<String>("path")
+            .map(|s| Path::new(s).to_path_buf())
+            .unwrap_or_else(|| PathBuf::from("."));
 
         Self {
             force,
-            base_path: Path::new(&base_path).to_path_buf(),
+            base_path,
             back_up,
         }
     }
+
     pub fn generate_readme(&self) -> Result<(), FsError> {
         let file_exists = file_exists_in_path(self.base_path.as_path(), "README.md");
-        let allow_over_write = self.force;
-        let backup_existing_file = self.back_up;
+        let file_path = self.base_path.join("README.md");
+        let backup_path = self.base_path.join("README.md.bak");
 
-        let desired_path = Path::new(&self.base_path).join("README.md");
-        let file_path = desired_path.as_path();
-        let backup_path = Path::new(&self.base_path).join("README.md").join(".bak");
-
-        if file_exists && !allow_over_write {
-            LogMessage::error("the readme already exist, use the --force flag to overwrite it");
-            std::process::exit(1);
-        } else if file_exists && allow_over_write && !backup_existing_file {
-            let allow_overwrite = Confirm::new()
-                .with_prompt("The current readme would not be backed up, do you wish to continue?")
-                .interact()
-                .unwrap();
-
-            if !allow_overwrite {
-                std::process::exit(1);
-            }
-
-            Self::create_readme_template(file_path)?
-        } else if file_exists && allow_over_write && backup_existing_file {
-            let _ = std::fs::copy(file_path, backup_path).map_err(|error| {
-                LogMessage::error(&error.to_string());
-                std::process::exit(1);
-            });
-            Self::create_readme_template(file_path)?;
+        // Case 1: File exists but overwriting not allowed
+        if file_exists && !self.force {
+            LogMessage::error(
+                "A README.md file already exists. Use the --force flag to overwrite it.",
+            );
+            return Err(FsError::OperationError(
+                "README.md already exists — use --force to overwrite".to_string(),
+            ));
         }
 
-        Self::create_readme_template(file_path)?;
+        // Case 2: File exists and overwrite is allowed
+        if file_exists && self.force {
+            if self.back_up {
+                if let Err(error) = fs::copy(&file_path, &backup_path) {
+                    LogMessage::error(&format!("Failed to back up README.md: {}", error));
+                    return Err(FsError::OperationError(error.to_string()));
+                }
+                LogMessage::info(&format!("Backup created at {:?}", backup_path));
+            } else {
+                let confirm = Confirm::new()
+                    .with_prompt("The current README.md will not be backed up. Continue?")
+                    .default(false)
+                    .interact()
+                    .unwrap_or(false);
+
+                if !confirm {
+                    LogMessage::info("Operation cancelled by user.");
+                    return Ok(());
+                }
+            }
+
+            fs::remove_file(&file_path).map_err(|err| {
+                FsError::OperationError(format!("Failed to remove file: {}", err))
+            })?;
+            LogMessage::info("Old README.md removed.");
+        }
+
+        // Case 3: Create new README template
+        Self::create_readme_template(&file_path)?;
+        LogMessage::success(&format!(
+            "README.md successfully created at {:?}",
+            file_path
+        ));
 
         Ok(())
     }
+
     pub fn generate_ignore_file(&self) -> Result<(), FsError> {
         let file_exists = file_exists_in_path(self.base_path.as_path(), ".gitignore");
-        let allow_over_write = self.force;
-        let backup_existing_file = self.back_up;
+        let file_path = self.base_path.join(".gitignore");
+        let backup_path = self.base_path.join(".gitignore.bak");
 
-        let desired_path = Path::new(&self.base_path).join(".gitignore");
-        let file_path = desired_path.as_path();
-        let backup_path = Path::new(&self.base_path).join(".gitignore").join(".bak");
-
-        if file_exists && !allow_over_write {
-            "a .gitignorefile already exist on the selectd path, use the --force flag to overwrite it".to_string();
-            std::process::exit(1);
-        } else if file_exists && allow_over_write {
-            fs::remove_file(file_path).map_err(|err| FsError::OperationError(err.to_string()))?
-        } else if file_exists && allow_over_write && backup_existing_file {
-            fs::copy(file_path, backup_path)
-                .map_err(|err| FsError::OperationError(err.to_string()))?;
-            fs::remove_file(file_path).map_err(|err| FsError::OperationError(err.to_string()))?;
-
-            Self::create_git_ignore_template(file_path)?
+        if file_exists && !self.force {
+            LogMessage::warning(
+                "A .gitignore file already exists in the selected path. Use the '--force' flag to overwrite it.",
+            );
+            return Err(FsError::OperationError(
+                ".gitignore already exists — use --force to overwrite".to_string(),
+            ));
         }
-        Self::create_git_ignore_template(file_path)
+
+        if file_exists && self.force {
+            if self.back_up {
+                fs::copy(&file_path, &backup_path)
+                    .map_err(|err| FsError::OperationError(format!("Backup failed: {}", err)))?;
+                LogMessage::info(&format!("Backup created at {:?}", backup_path));
+            }
+
+            fs::remove_file(&file_path).map_err(|err| {
+                FsError::OperationError(format!("Failed to remove file: {}", err))
+            })?;
+            LogMessage::info("Old .gitignore removed.");
+        }
+
+        Self::create_git_ignore_template(&file_path)?;
+        LogMessage::success(&format!(
+            ".gitignore file successfully created at {:?}",
+            file_path
+        ));
+
+        Ok(())
     }
+
     pub fn generate_service(base_path: &PathBuf) {
         let folders = [
             "config",
@@ -120,22 +143,28 @@ impl GeneratorConfig {
             "src",
         ];
 
-        // create the base path if not exist
         if !Path::new(base_path).exists() {
-            let _ = fs::create_dir(base_path);
+            if let Err(err) = fs::create_dir(base_path) {
+                LogMessage::error(&format!("Failed to create base directory: {}", err));
+                return;
+            }
         }
+
         LogMessage::success(&format!(
-            "creating new service to path {:?}",
-            base_path.canonicalize()
+            "Creating new service at {:?}",
+            base_path
+                .canonicalize()
+                .unwrap_or_else(|_| base_path.clone())
         ));
-        let _ = folders
-            .into_iter()
-            .map(|dir| {
-                let path = Path::new(base_path).join(dir);
-                let _ = fs::create_dir(path);
-            })
-            .collect::<Vec<_>>();
+
+        for dir in folders {
+            let path = Path::new(base_path).join(dir);
+            if let Err(err) = fs::create_dir(&path) {
+                LogMessage::warning(&format!("Could not create folder {:?}: {}", path, err));
+            }
+        }
     }
+
     fn create_git_ignore_template(full_path: &Path) -> Result<(), FsError> {
         let supported_technologies = vec![
             "AL",
@@ -278,71 +307,68 @@ impl GeneratorConfig {
             .unwrap();
 
         if let Some(index) = selection {
-            println!("User selected item : {}", supported_technologies[index]);
+            LogMessage::info(&format!("User selected: {}", supported_technologies[index]));
             let selection = supported_technologies[index];
             Self::generate_ignore_file_to_path(selection, full_path);
         } else {
-            std::process::exit(1)
+            LogMessage::warning("No selection made. Operation cancelled.");
+            std::process::exit(1);
         }
+
         Ok(())
     }
 
     fn generate_ignore_file_to_path(technology: &str, path: &Path) {
         let src_path = format!("gitignore/{}.gitignore", technology);
-        let file_path = SOURCE_DIR.get_file(src_path);
-
-        if let Some(file_content) = file_path {
-            let mut file = File::create(path).unwrap();
-            file.write_all(file_content.contents()).unwrap();
+        if let Some(file) = SOURCE_DIR.get_file(src_path) {
+            if let Ok(mut output) = File::create(path) {
+                if let Err(err) = output.write_all(file.contents()) {
+                    LogMessage::error(&format!("Failed to write .gitignore: {}", err));
+                }
+            } else {
+                LogMessage::error("Unable to create .gitignore file.");
+            }
+        } else {
+            LogMessage::warning(&format!(
+                "No template found for technology '{}'.",
+                technology
+            ));
         }
     }
     fn create_readme_template(full_path: &Path) -> Result<(), FsError> {
-        let content = r#" # Project Title
-- [Description](#description)
-- [Getting Started](#getting-started)
-  - [Dependencies](#dependencies)
-  - [Installing](#installing)
-  - [Executing program](#executing-program)
-- [Documentation](#documentation)
-- [Help](#help)
-- [Authors](#authors)
-- [Version History](#version-history)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+        let content=r#"
+
+        # Project Title
+
+Simple overview of use/purpose.
 
 ## Description
 
-Project description
+An in-depth paragraph about your project and overview of use.
 
 ## Getting Started
 
 ### Dependencies
 
-- Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-- ex. Windows 10
+* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
+* ex. Windows 10
 
 ### Installing
 
-- How/where to download your program
-- Any modifications needed to be made to files/folders
+* How/where to download your program
+* Any modifications needed to be made to files/folders
 
 ### Executing program
 
-- How to run the program
-- Step-by-step bullets
-
+* How to run the program
+* Step-by-step bullets
 ```
 code blocks for commands
 ```
 
-## Documentation
-
-Describe any special instructions that are necessary to install a software package on your computer (if applicable).
-
 ## Help
 
 Any advise for common problems or issues.
-
 ```
 command to run if program contains helper info
 ```
@@ -351,16 +377,16 @@ command to run if program contains helper info
 
 Contributors names and contact info
 
-ex. Dominique Pizzie  
+ex. Dominique Pizzie
 ex. [@DomPizzie](https://twitter.com/dompizzie)
 
 ## Version History
 
-- 0.2
-  - Various bug fixes and optimizations
-  - See [commit change]() or See [release history]()
-- 0.1
-  - Initial Release
+* 0.2
+    * Various bug fixes and optimizations
+    * See [commit change]() or See [release history]()
+* 0.1
+    * Initial Release
 
 ## License
 
@@ -369,14 +395,16 @@ This project is licensed under the [NAME HERE] License - see the LICENSE.md file
 ## Acknowledgments
 
 Inspiration, code snippets, etc.
+* [awesome-readme](https://github.com/matiassingers/awesome-readme)
+* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
+* [dbader](https://github.com/dbader/readme-template)
+* [zenorocha](https://gist.github.com/zenorocha/4526327)
+* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
         "#;
-
-        let mut file = std::fs::File::create(full_path)
+             let mut file = std::fs::File::create(full_path)
             .map_err(|err| FsError::OperationError(err.to_string()))?;
-
         file.write_all(content.as_bytes())
             .map_err(|err| FsError::OperationError(err.to_string()))?;
-
         Ok(())
     }
 }

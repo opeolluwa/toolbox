@@ -2,6 +2,7 @@ use rusqlite::Connection;
 
 use crate::database::repository::KvRepository;
 use crate::database::repository::KvRepositoryTrait;
+use crate::helpers::console::LogMessage;
 
 pub struct StoreConfig {
     kv_store_repository: KvRepository,
@@ -18,8 +19,14 @@ impl StoreConfig {
         let _ = self.kv_store_repository.create_new(&key, &value, sensitive);
     }
     pub fn list(&self) {
-        let data = self.kv_store_repository.retrieve_all();
-        println!("{:#?}", data);
+        let dataset = self.kv_store_repository.retrieve_all();
+        if dataset.is_empty() {
+            LogMessage::neutral("Store is empty");
+            return;
+        }
+        for entry in dataset {
+            println!("{} -> {}", entry.key, entry.value)
+        }
     }
     pub fn find(&self) {}
     pub fn remove(&self) {}

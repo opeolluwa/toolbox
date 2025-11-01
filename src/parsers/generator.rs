@@ -1,36 +1,51 @@
 use std::path::Path;
 
 use clap::ArgMatches;
-
 use crate::workers::generator::GeneratorConfig;
+use crate::helpers::console::LogMessage;
 
+/// Parses subcommands and delegates to the appropriate generator.
 pub fn parse_generator_options(sub_matches: &ArgMatches) {
     match sub_matches.subcommand() {
-        Some(("readme", command_arguments)) => {
-            let GeneratorConfig {
-                force,
-                base_path,
-                back_up,
-            } = GeneratorConfig::parse_options(command_arguments);
-            let _ = GeneratorConfig::new(force, base_path, back_up).generate_readme();
+        Some(("readme", args)) => {
+            let config = GeneratorConfig::parse_options(args);
+            if let Err(err) = GeneratorConfig::new(config.force, config.base_path, config.back_up)
+                .generate_readme()
+            {
+                LogMessage::error(&format!("Failed to generate README: {}", err));
+            } else {
+                LogMessage::success("README.md generated successfully.");
+            }
         }
-        Some(("git-ignore", command_arguments)) => {
-            let GeneratorConfig {
-                force,
-                base_path,
-                back_up,
-            } = GeneratorConfig::parse_options(command_arguments);
-            let _ = GeneratorConfig::new(force, base_path, back_up).generate_ignore_file();
-        }
-        Some(("service", command_arguments)) => {
-            let mut base_path = String::from(".");
 
-            if let Some(base_path_flag) = command_arguments.get_one::<String>("path") {
-                base_path = base_path_flag.trim().to_string();
-            };
+        Some(("gitignore", args)) => {
+            let config = GeneratorConfig::parse_options(args);
+            match GeneratorConfig::new(config.force, config.base_path, config.back_up)
+                .generate_ignore_file()
+            {
+                Ok(_) => LogMessage::success(".gitignore file generated successfully."),
+                Err(err) => LogMessage::error(&format!("Failed to generate .gitignore: {}", err)),
+            }
+        }
+
+        Some(("service", args)) => {
+            let base_path = args
+                .get_one::<String>("path")
+                .map(|s| s.trim().to_string())
+                .unwrap_or_else(|| ".".to_string());
 
             GeneratorConfig::generate_service(&Path::new(&base_path).to_path_buf());
+            LogMessage::info(&format!("Service generated at {}", base_path));
         }
-        _ => std::process::exit(1),
+
+        Some((other, _)) => {
+            LogMessage::warning(&format!("Unknown subcommand '{}'", other));
+            std::process::exit(1);
+        }
+
+        None => {
+            LogMessage::error("No subcommand provided. Use `--help` to see available options.");
+            std::process::exit(1);
+        }
     }
 }
