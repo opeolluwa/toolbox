@@ -1,14 +1,13 @@
 use clap::Command;
-
-use lib_toolbox::errors::app::AppError;
-
-use lib_toolbox::commands::generate::generate_command;
-use lib_toolbox::commands::script::script_command;
-use lib_toolbox::commands::self_cmd::self_command;
-use lib_toolbox::commands::store::store_command;
-
-use lib_toolbox::config::database::AppDatabase;
-
+use lib_toolbox::{
+    commands::{
+        generate::generate_command, script::script_command, self_cmd::self_command,
+        store::store_command,
+    },
+    config::database::AppDatabase,
+    errors::app::AppError,
+    toolbox::parse_commands,
+};
 
 fn main() -> Result<(), AppError> {
     let matches = Command::new("toolbox")
@@ -24,7 +23,7 @@ fn main() -> Result<(), AppError> {
 
     let db = AppDatabase::init()?;
 
-    lib_toolbox::toolbox::parse_commands(matches, db);
+    parse_commands(matches, db);
 
     Ok(())
 }

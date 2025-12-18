@@ -1,8 +1,9 @@
 use std::path::Path;
 
 use clap::ArgMatches;
-use crate::workers::generator::GeneratorConfig;
+
 use crate::helpers::console::LogMessage;
+use crate::workers::generator::GeneratorConfig;
 
 /// Parses subcommands and delegates to the appropriate generator.
 pub fn parse_generator_options(sub_matches: &ArgMatches) {

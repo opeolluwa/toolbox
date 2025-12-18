@@ -1,5 +1,7 @@
-use crate::errors::app::AppError;
 use rusqlite::Connection;
+
+use crate::errors::app::AppError;
+
 pub struct AppDatabase {}
 
 impl AppDatabase {

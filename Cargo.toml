@@ -7,14 +7,13 @@ name = "toolbox"
 version = "1.1.5"
 license = "Apache-2.0"
 
+[lib]
+name = "lib_toolbox"
+path = "src/lib.rs"
 
 [[bin]]
-name="tb"
-path="src/main.rs"
-
-[lib]
-name="lib_toolbox"
-path="src/lib.rs"
+name = "tb"
+path = "src/main.rs"
 
 [dependencies]
 boa_engine = "0.21.0"

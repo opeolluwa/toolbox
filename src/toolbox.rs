@@ -1,11 +1,12 @@
+use clap::ArgMatches;
+use rusqlite::Connection;
+
 use crate::helpers::console::LogMessage;
 use crate::parsers::{
     app::{parse_uninstall_options, parse_upgrade_options},
     generator::parse_generator_options,
     store::parse_store_options,
 };
-use clap::ArgMatches;
-use rusqlite::Connection;
 
 pub fn parse_commands(matches: ArgMatches, database_connection: Connection) {
     match matches.subcommand() {

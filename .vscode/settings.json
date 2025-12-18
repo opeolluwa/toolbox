@@ -12,5 +12,11 @@
       // "component",
       "server"
     ]
-  }
+  },
+  "cSpell.words": [
+    "chrono",
+    "dialoguer",
+    "rusqlite",
+    "serde"
+  ]
 }
