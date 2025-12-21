@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 use chrono::Local;
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
@@ -27,11 +28,11 @@ impl KvStore {
         }
     }
 
-    pub fn save(&self) {}
+    pub fn _save(&self) {}
 }
 
-pub fn stored_data_handler() {}
-pub fn run_store_tui() -> Result<(), DatabaseError> {
+// pub fn stored_data_handler() {}
+pub fn _run_store_tui() -> Result<(), DatabaseError> {
     let _security_questions = vec![
         "What is your mother's maiden name?",
         "What is the name of your first pet?",

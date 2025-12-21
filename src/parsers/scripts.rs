@@ -1,39 +1,33 @@
-// Copyright 2018-2025 the Deno authors. MIT license.
-// NOTE:
-// Here we are deserializing to `serde_json::Value` but you can
-// deserialize to any other type that implements the `Deserialize` trait.
-use deno_core::v8;
-use deno_core::JsRuntime;
-use deno_core::RuntimeOptions;
+use clap::ArgMatches;
 
-fn main() {
-    let mut runtime = JsRuntime::new(RuntimeOptions::default());
+use crate::{helpers::console::LogMessage, workers::scripts::configure_scripts};
 
-    // Evaluate some code
-    let code = "let a = 1+4; a*2";
-    let output: serde_json::Value = eval(&mut runtime, code).expect("Eval failed");
+pub fn parse_script_options(sub_matches: &ArgMatches) {
+    match sub_matches.subcommand() {
+        Some(("configure", args)) => {
+            let override_existing = *args.get_one::<bool>("overwrite").unwrap_or(&false);
 
-    println!("Output: {output:?}");
-
-    let expected_output = serde_json::json!(10);
-    assert_eq!(expected_output, output);
-}
-
-fn eval(context: &mut JsRuntime, code: &'static str) -> Result<serde_json::Value, String> {
-    let res = context.execute_script("<anon>", code);
-    match res {
-        Ok(global) => {
-            deno_core::scope!(scope, context);
-            let local = v8::Local::new(scope, global);
-            // Deserialize a `v8` object into a Rust type using `serde_v8`,
-            // in this case deserialize to a JSON `Value`.
-            let deserialized_value = serde_v8::from_v8::<serde_json::Value>(scope, local);
-
-            match deserialized_value {
-                Ok(value) => Ok(value),
-                Err(err) => Err(format!("Cannot deserialize value: {err:?}")),
-            }
+            let _ = configure_scripts();
         }
-        Err(err) => Err(format!("Evaling error: {err:?}")),
+        Some(("add", args)) => {
+            println!("add new scripts")
+        }
+
+        Some(("remove", args)) => {
+            println!("remove new scripts")
+        }
+        Some(("execute", args)) => {
+            println!("execute new scripts")
+        }
+
+        Some((other, _)) => {
+            LogMessage::warning(&format!("Unknown subcommand '{}'", other));
+            std::process::exit(1);
+        }
+
+        None => {
+            LogMessage::error("No subcommand provided. Use `--help` to see available options.");
+            std::process::exit(1);
+        }
     }
 }

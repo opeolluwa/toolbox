@@ -1,0 +1,1 @@
+# create Justfile for Server, Tauri and Custom setup 

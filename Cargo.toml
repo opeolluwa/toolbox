@@ -16,11 +16,12 @@ name = "tb"
 path = "src/main.rs"
 
 [dependencies]
-boa_engine = "0.21.0"
 chrono = "0.4.40"
 clap = { version = "4.5.32", features = ["cargo", "unstable-doc"] }
+config = "0.15.19"
+confy = "2.0.0"
 console = "0.15.11"
-dialoguer = { version = "0.10.4", features = ["fuzzy-select", "completion"] }
+dialoguer = { version = "0.10.4", features = ["fuzzy-select", "completion", "editor"] }
 dirs = "5.0.1"
 include_dir = "0.7.4"
 lazy_static = "1.5.0"

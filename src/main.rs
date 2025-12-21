@@ -11,6 +11,7 @@ use lib_toolbox::{
 
 fn main() -> Result<(), AppError> {
     let matches = Command::new("toolbox")
+    .display_name("Dev toolbox")
         .about("lightweight extensible, command line toolchain for software builders")
         .subcommand_required(true)
         .arg_required_else_help(true)
