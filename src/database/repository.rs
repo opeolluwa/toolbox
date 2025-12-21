@@ -3,7 +3,6 @@ use rusqlite::Connection;
 use super::store::KvStore;
 use crate::errors::database::DatabaseError;
 
-
 #[allow(dead_code)]
 pub trait KvRepositoryTrait {
     fn new(connection: Connection) -> Self;

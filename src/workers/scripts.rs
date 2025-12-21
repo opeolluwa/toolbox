@@ -1,7 +1,8 @@
 use std::{
     fs::{self},
     io::{Error, ErrorKind},
-    path::Path, process::Command,
+    path::Path,
+    process::Command,
 };
 
 use crate::{
@@ -35,8 +36,6 @@ pub fn configure_scripts(_overwrite: bool) -> Result<(), FileSystemError> {
 
     Ok(())
 }
-
-
 
 pub fn execute_custom_script(script: &str) {
     let output = Command::new("python3")

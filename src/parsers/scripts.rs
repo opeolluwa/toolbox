@@ -1,12 +1,10 @@
-use std::{
-    fs,
-    path::Path,
-};
+use std::{fs, path::Path};
 
 use clap::ArgMatches;
 
 use crate::{
-    constants::APP_RUNTIME_SCRIPTS_DIR, helpers::console::LogMessage,
+    constants::APP_RUNTIME_SCRIPTS_DIR,
+    helpers::console::LogMessage,
     workers::scripts::{configure_scripts, execute_custom_script},
 };
 

@@ -1,5 +1,5 @@
-use thiserror::Error;
 use confy::ConfyError;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum FileSystemError {
@@ -8,5 +8,5 @@ pub enum FileSystemError {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
-    ConfyError(#[from] ConfyError)
+    ConfyError(#[from] ConfyError),
 }

@@ -4,8 +4,8 @@ use clap::ArgMatches;
 use rusqlite::Connection;
 
 use crate::{
-    workers::store::StoreConfig,
     helpers::{console::LogMessage, parser::extract_command_argument},
+    workers::store::StoreConfig,
 };
 
 pub fn parse_store_options(sub_matches: &ArgMatches, database_connection: Connection) {
