@@ -3,6 +3,8 @@ use rusqlite::Connection;
 use super::store::KvStore;
 use crate::errors::database::DatabaseError;
 
+
+#[allow(dead_code)]
 pub trait KvRepositoryTrait {
     fn new(connection: Connection) -> Self;
 
@@ -111,7 +113,7 @@ impl KvRepositoryTrait for KvRepository {
         .collect::<Vec<_>>()
     }
 
-    fn find_by_key(&self, key: &String) -> Option<KvStore> {
+    fn find_by_key(&self, _key: &String) -> Option<KvStore> {
         todo!()
     }
 
@@ -124,7 +126,7 @@ impl KvRepositoryTrait for KvRepository {
         let Some(mut stmt) = stmt else {
             return None;
         };
-        let stored_data = stmt
+        let _stored_data = stmt
             .query_map([id], |row| {
                 Ok(KvStore {
                     id: row.get(0).unwrap_or_default(),

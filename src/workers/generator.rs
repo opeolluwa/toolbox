@@ -8,8 +8,8 @@ use console::Term;
 use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect};
 use serde::{Deserialize, Serialize};
 
-use crate::constants::SOURCE_DIR;
-use crate::errors::file_system::FsError;
+use crate::constants::TEMPLATES_DIR;
+use crate::errors::file_system::FileSystemError;
 use crate::helpers::{console::LogMessage, file_system::file_exists_in_path};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,14 +45,14 @@ impl GeneratorConfig {
         }
     }
 
-    pub fn generate_readme(&self) -> Result<(), FsError> {
+    pub fn generate_readme(&self) -> Result<(), FileSystemError> {
         let file_exists = file_exists_in_path(self.base_path.as_path(), "README.md");
         let file_path = self.base_path.join("README.md");
         let backup_path = self.base_path.join("README.md.bak");
 
         // Case 1: File exists but overwriting not allowed
         if file_exists && !self.force {
-            return Err(FsError::OperationError(
+            return Err(FileSystemError::OperationError(
                 "README.md already exists — use --force to overwrite".to_string(),
             ));
         }
@@ -61,7 +61,7 @@ impl GeneratorConfig {
         if file_exists && self.force {
             if self.back_up {
                 if let Err(error) = fs::copy(&file_path, &backup_path) {
-                    return Err(FsError::OperationError(error.to_string()));
+                    return Err(FileSystemError::OperationError(error.to_string()));
                 }
                 LogMessage::info(&format!("Backup created at {:?}", backup_path));
             } else {
@@ -78,7 +78,7 @@ impl GeneratorConfig {
             }
 
             fs::remove_file(&file_path).map_err(|err| {
-                FsError::OperationError(format!("Failed to remove file: {}", err))
+                FileSystemError::OperationError(format!("Failed to remove file: {}", err))
             })?;
             LogMessage::info("Old README.md removed.");
         }
@@ -88,7 +88,7 @@ impl GeneratorConfig {
         Ok(())
     }
 
-    pub fn generate_ignore_file(&self) -> Result<(), FsError> {
+    pub fn generate_ignore_file(&self) -> Result<(), FileSystemError> {
         let file_exists = file_exists_in_path(self.base_path.as_path(), ".gitignore");
         let file_path = self.base_path.join(".gitignore");
         let backup_path = self.base_path.join(".gitignore.bak");
@@ -97,20 +97,21 @@ impl GeneratorConfig {
             LogMessage::warning(
                 "A .gitignore file already exists in the selected path. Use the '--force' flag to overwrite it.",
             );
-            return Err(FsError::OperationError(
+            return Err(FileSystemError::OperationError(
                 ".gitignore already exists — use --force to overwrite".to_string(),
             ));
         }
 
         if file_exists && self.force {
             if self.back_up {
-                fs::copy(&file_path, &backup_path)
-                    .map_err(|err| FsError::OperationError(format!("Backup failed: {}", err)))?;
+                fs::copy(&file_path, &backup_path).map_err(|err| {
+                    FileSystemError::OperationError(format!("Backup failed: {}", err))
+                })?;
                 LogMessage::info(&format!("Backup created at {:?}", backup_path));
             }
 
             fs::remove_file(&file_path).map_err(|err| {
-                FsError::OperationError(format!("Failed to remove file: {}", err))
+                FileSystemError::OperationError(format!("Failed to remove file: {}", err))
             })?;
             LogMessage::info("Old .gitignore removed.");
         }
@@ -151,7 +152,7 @@ impl GeneratorConfig {
         }
     }
 
-    fn create_git_ignore_template(full_path: &Path) -> Result<(), FsError> {
+    fn create_git_ignore_template(full_path: &Path) -> Result<(), FileSystemError> {
         let supported_technologies = vec![
             "AL",
             "Actionscript",
@@ -306,7 +307,7 @@ impl GeneratorConfig {
 
     fn generate_ignore_file_to_path(technology: &str, path: &Path) {
         let src_path = format!("gitignore/{}.gitignore", technology);
-        if let Some(file) = SOURCE_DIR.get_file(src_path) {
+        if let Some(file) = TEMPLATES_DIR.get_file(src_path) {
             if let Ok(mut output) = File::create(path) {
                 if let Err(err) = output.write_all(file.contents()) {
                     LogMessage::error(&format!("Failed to write .gitignore: {}", err));
@@ -321,10 +322,9 @@ impl GeneratorConfig {
             ));
         }
     }
-    fn create_readme_template(full_path: &Path) -> Result<(), FsError> {
-        let content=r#"
-
-        # Project Title
+    fn create_readme_template(full_path: &Path) -> Result<(), FileSystemError> {
+        let content = r#"
+# Project Title
 
 Simple overview of use/purpose.
 
@@ -387,10 +387,10 @@ Inspiration, code snippets, etc.
 * [zenorocha](https://gist.github.com/zenorocha/4526327)
 * [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
         "#;
-             let mut file = std::fs::File::create(full_path)
-            .map_err(|err| FsError::OperationError(err.to_string()))?;
+        let mut file = std::fs::File::create(full_path)
+            .map_err(|err| FileSystemError::OperationError(err.to_string()))?;
         file.write_all(content.as_bytes())
-            .map_err(|err| FsError::OperationError(err.to_string()))?;
+            .map_err(|err| FileSystemError::OperationError(err.to_string()))?;
         Ok(())
     }
 }
