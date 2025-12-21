@@ -19,7 +19,7 @@ pub fn script_command() -> Command {
 
     let execute_scripts_cmd = Command::new("execute")
         .about("execute a dynamic script")
-        .aliases(["-e", "exc"])
+        .aliases(["-e", "exec","exe"])
         .arg(Arg::new("name").help("name of the script"));
 
     Command::new("script")
