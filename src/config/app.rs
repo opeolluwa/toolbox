@@ -1,16 +1,22 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::file_system::FileSystemError;
+use crate::{commands::script, errors::file_system::FileSystemError};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ToolboxConfig {
     pub scripts: ScriptConfig,
+    pub env: EnvConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ScriptConfig {
     pub runner: String,
     pub source: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EnvConfig {
+    pub database_url: String,
 }
 
 impl Default for ScriptConfig {
