@@ -4,7 +4,6 @@ use lib_toolbox::{
         generate::generate_command, script::script_command, self_cmd::self_command,
         store::store_command,
     },
-    config::database::AppDatabase,
     errors::app::AppError,
     toolbox::parse_commands,
 };
@@ -22,9 +21,8 @@ fn main() -> Result<(), AppError> {
         .subcommand(script_command())
         .get_matches();
 
-    let db = AppDatabase::init()?;
 
-    parse_commands(matches, db);
+    parse_commands(matches);
 
     Ok(())
 }

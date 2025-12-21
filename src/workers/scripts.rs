@@ -1,8 +1,8 @@
 use std::{
     fs::{self},
     io::{Error, ErrorKind},
-    path::{Path, PathBuf},
-    process::Command,
+    path::Path,
+    process::{Command, Stdio},
 };
 
 use crate::{
@@ -50,18 +50,22 @@ pub fn execute_custom_script(script: &str) -> Result<(), FileSystemError> {
     let runner = cfg.scripts.runner;
 
     // Execute the script using the configured runner and propagate errors
-    let output = Command::new(runner)
+    let mut cmd = Command::new(runner)
         .arg(script_path)
-        .output()
-        .expect("Failed to execute script");
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()?;
 
-    println!("{}", String::from_utf8_lossy(&output.stdout));
-    eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+    let status = cmd.wait()?;
 
+    if !status.success() {
+        eprintln!("Script exited with status: {}", status);
+    }
     Ok(())
 }
 
-pub fn add_script_command(script_file_path: &PathBuf) -> Result<(), FileSystemError> {
+pub fn add_script_command(script_file_path: &Path) -> Result<(), FileSystemError> {
     let file_path = script_file_path;
 
     if !file_path.exists() {
@@ -141,7 +145,7 @@ pub fn add_script_command(script_file_path: &PathBuf) -> Result<(), FileSystemEr
                 dest_path.display(),
                 e
             ));
-            return Err(FileSystemError::IoError(e));
+            Err(FileSystemError::IoError(e))
         }
     }
 }
