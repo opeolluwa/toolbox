@@ -1,23 +1,55 @@
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
+
 use clap::ArgMatches;
 
-use crate::{helpers::console::LogMessage, workers::scripts::configure_scripts};
+use crate::{
+    constants::APP_RUNTIME_SCRIPTS_DIR, helpers::console::LogMessage,
+    workers::scripts::{configure_scripts, execute_custom_script},
+};
 
 pub fn parse_script_options(sub_matches: &ArgMatches) {
     match sub_matches.subcommand() {
         Some(("configure", args)) => {
             let override_existing = *args.get_one::<bool>("overwrite").unwrap_or(&false);
 
-            let _ = configure_scripts();
+            let _ = configure_scripts(override_existing);
         }
         Some(("add", args)) => {
-            println!("add new scripts")
+            if let Some(file_path) = args
+                .get_one::<String>("path")
+                .map(|s| Path::new(s).to_path_buf())
+            {
+                let dest = format!("{APP_RUNTIME_SCRIPTS_DIR}/{:?}", file_path.file_name());
+                let _ = fs::copy(file_path, dest);
+            } else {
+                LogMessage::error("file path is required");
+            }
         }
 
         Some(("remove", args)) => {
-            println!("remove new scripts")
+            if let Some(script) = args
+                .get_one::<String>("name")
+                .map(|script| format!("{script}.py"))
+            //TODO: read the file extension
+            {
+                let _ = fs::remove_file(script);
+            } else {
+                LogMessage::error("script name is required");
+            }
         }
         Some(("execute", args)) => {
-            println!("execute new scripts")
+            if let Some(script) = args
+                .get_one::<String>("name")
+                .map(|script| format!("{script}.py"))
+            //TODO: read the file extension
+            {
+                execute_custom_script(&script)
+            } else {
+                LogMessage::error("script name is required");
+            }
         }
 
         Some((other, _)) => {
