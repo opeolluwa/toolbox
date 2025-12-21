@@ -7,8 +7,7 @@ pub fn extract_command_argument<T>(
 where
     T: Clone + Sync + Send + 'static,
 {
-    match command_arguments.get_one::<T>(field_name) {
-        Some(value) => Some(value.to_owned()),
-        None => None,
-    }
+    command_arguments
+        .get_one::<T>(field_name)
+        .map(|value| value.to_owned())
 }

@@ -33,7 +33,7 @@ impl KvStore {
 
 // pub fn stored_data_handler() {}
 pub fn _run_store_tui() -> Result<(), DatabaseError> {
-    let _security_questions = vec![
+    let _security_questions = [
         "What is your mother's maiden name?",
         "What is the name of your first pet?",
         "What city were you born in?",

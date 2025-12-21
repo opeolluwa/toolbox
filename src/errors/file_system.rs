@@ -1,3 +1,4 @@
+use confy::ConfyError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -6,4 +7,6 @@ pub enum FileSystemError {
     OperationError(String),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    ConfyError(#[from] ConfyError),
 }
