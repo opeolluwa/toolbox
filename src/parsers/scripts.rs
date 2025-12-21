@@ -3,9 +3,8 @@ use std::{fs, path::Path};
 use clap::ArgMatches;
 
 use crate::{
-    constants::APP_RUNTIME_SCRIPTS_DIR,
     helpers::console::LogMessage,
-    workers::scripts::{configure_scripts, execute_custom_script},
+    workers::scripts::{add_script_command, configure_scripts, execute_custom_script},
 };
 
 pub fn parse_script_options(sub_matches: &ArgMatches) {
@@ -15,15 +14,15 @@ pub fn parse_script_options(sub_matches: &ArgMatches) {
 
             let _ = configure_scripts(override_existing);
         }
+
         Some(("add", args)) => {
-            if let Some(file_path) = args
+            if let Some(script_file_path) = args
                 .get_one::<String>("path")
                 .map(|s| Path::new(s).to_path_buf())
             {
-                let dest = format!("{APP_RUNTIME_SCRIPTS_DIR}/{:?}", file_path.file_name());
-                let _ = fs::copy(file_path, dest);
+                let _ = add_script_command(&script_file_path);
             } else {
-                LogMessage::error("file path is required");
+                LogMessage::error("invalid script path");
             }
         }
 
@@ -42,7 +41,6 @@ pub fn parse_script_options(sub_matches: &ArgMatches) {
             if let Some(script) = args
                 .get_one::<String>("name")
                 .map(|script| format!("{script}.py"))
-            //TODO: read the file extension
             {
                 execute_custom_script(&script)
             } else {
