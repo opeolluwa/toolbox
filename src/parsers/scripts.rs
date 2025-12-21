@@ -42,7 +42,7 @@ pub fn parse_script_options(sub_matches: &ArgMatches) {
                 .get_one::<String>("name")
                 .map(|script| format!("{script}.py"))
             {
-                execute_custom_script(&script)
+                let _ = execute_custom_script(&script);
             } else {
                 LogMessage::error("script name is required");
             }

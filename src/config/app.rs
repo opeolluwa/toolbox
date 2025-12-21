@@ -7,12 +7,20 @@ pub struct ToolboxConfig {
     pub scripts: ScriptConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ScriptConfig {
     pub runner: String,
     pub source: String,
 }
 
+impl Default for ScriptConfig {
+    fn default() -> Self {
+        Self {
+            runner: "python3".to_string(),
+            source: Default::default(),
+        }
+    }
+}
 impl ToolboxConfig {
     const APP_NAME: &str = "dev_toolbox";
     // const

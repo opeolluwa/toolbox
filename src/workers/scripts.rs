@@ -37,18 +37,28 @@ pub fn configure_scripts(_overwrite: bool) -> Result<(), FileSystemError> {
     Ok(())
 }
 
-pub fn execute_custom_script(script: &str) {
-    let home_dir = dirs::home_dir().unwrap();
+pub fn execute_custom_script(script: &str) -> Result<(), FileSystemError> {
+    let home_dir = dirs::home_dir().ok_or(FileSystemError::IoError(Error::new(
+        ErrorKind::NotFound,
+        "could not find device $HOME directory",
+    )))?;
 
     let script_path = home_dir.join(APP_RUNTIME_SCRIPTS_DIR).join(script);
 
-    let output = Command::new("python3")
+    // Load toolbox configuration to determine which runner to use
+    let cfg = ToolboxConfig::load()?;
+    let runner = cfg.scripts.runner;
+
+    // Execute the script using the configured runner and propagate errors
+    let output = Command::new(runner)
         .arg(script_path)
         .output()
         .expect("Failed to execute script");
 
     println!("{}", String::from_utf8_lossy(&output.stdout));
     eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+
+    Ok(())
 }
 
 pub fn add_script_command(script_file_path: &PathBuf) -> Result<(), FileSystemError> {

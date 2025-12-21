@@ -9,4 +9,6 @@ pub enum AppError {
     OperationFailed(String),
     #[error(transparent)]
     FileSystemError(#[from] FileSystemError),
+    #[error("$HOME path not found")]
+    HomeDirNotFound,
 }
