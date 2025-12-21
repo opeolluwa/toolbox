@@ -289,8 +289,7 @@ impl GeneratorConfig {
         let selection = FuzzySelect::with_theme(&ColorfulTheme::default())
             .items(&supported_technologies)
             .default(0)
-            .interact_on_opt(&Term::stderr())
-            .unwrap();
+            .interact_on_opt(&Term::stderr())?;
 
         if let Some(index) = selection {
             LogMessage::info(&format!("User selected: {}", supported_technologies[index]));
