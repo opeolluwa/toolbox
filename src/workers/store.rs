@@ -15,8 +15,8 @@ impl StoreConfig {
         }
     }
 
-    pub fn save(&self, key: &String, value: &String, sensitive: bool) {
-        let _ = self.kv_store_repository.create_new(&key, &value, sensitive);
+    pub fn save(&self, key: &str, value: &str, sensitive: bool) {
+        let _ = self.kv_store_repository.create_new(key, value, sensitive);
     }
     pub fn list(&self) {
         let dataset = self.kv_store_repository.retrieve_all();

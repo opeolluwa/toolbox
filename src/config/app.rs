@@ -29,7 +29,7 @@ impl ToolboxConfig {
     }
 
     pub fn load() -> Result<Self, FileSystemError> {
-        let cfg: ToolboxConfig = confy::load(&Self::APP_NAME, None)?;
+        let cfg: ToolboxConfig = confy::load(Self::APP_NAME, None)?;
         Ok(cfg)
     }
 

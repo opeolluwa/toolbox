@@ -83,7 +83,6 @@ impl KvRepositoryTrait for KvRepository {
             })
         })
         .unwrap()
-        .into_iter()
         .map(|matched_row| matched_row.unwrap())
         .collect::<Vec<_>>()
     }
@@ -108,7 +107,6 @@ impl KvRepositoryTrait for KvRepository {
             })
         })
         .unwrap()
-        .into_iter()
         .map(|matched_row| matched_row.unwrap())
         .collect::<Vec<_>>()
     }
@@ -138,7 +136,6 @@ impl KvRepositoryTrait for KvRepository {
                 })
             })
             .unwrap()
-            .into_iter()
             .map(|matched_row| matched_row.unwrap())
             .collect::<Vec<_>>();
 
