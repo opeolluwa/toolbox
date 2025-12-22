@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::errors::file_system::FileSystemError;
+use crate::{constants::DATABASE_URL, errors::file_system::FileSystemError};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ToolboxConfig {
@@ -22,7 +22,7 @@ pub struct EnvConfig {
 }
 impl Default for EnvConfig {
     fn default() -> Self {
-        Self { database_url: Default::default() }
+        Self { database_url: DATABASE_URL.to_string() }
     }
 }
 

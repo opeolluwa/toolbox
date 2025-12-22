@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use sea_orm::{ConnectOptions, Database as SeaOrmDatabase, DatabaseConnection};
 
 use migration::{Migrator, MigratorTrait};
@@ -15,23 +13,33 @@ impl Database {
     pub async fn init() -> Result<DatabaseConnection, AppError> {
         let config = ToolboxConfig::load()?;
 
-        let database_url = config.env.database_url;
-        let mut opt = ConnectOptions::new(&database_url);
+        let database_url = config.env.database_url.trim();
 
-        opt.max_connections(100)
-            .min_connections(5)
-            .connect_timeout(Duration::from_secs(8))
-            .acquire_timeout(Duration::from_secs(8))
-            .idle_timeout(Duration::from_secs(8))
-            .max_lifetime(Duration::from_secs(8))
-            .sqlx_logging(true)
-            .sqlx_logging_level(log::LevelFilter::Info);
+        // Fail fast with a clear, user‑friendly error if the URL is missing.
+        if database_url.is_empty() {
+            return Err(AppError::DatabaseError(DatabaseError::InvalidConfig(
+                "No database_url configured. Please run the configuration step (e.g. `tb script cfg`) to set up your database connection.".to_string(),
+            )));
+        }
 
-        let db = SeaOrmDatabase::connect(opt)
-            .await
-            .map_err(|err| DatabaseError::OperationFailed(err.to_string()))?;
+        // Optional: basic sanity check on the scheme so we don't try to connect with a nonsense URL.
+        if !database_url.starts_with("sqlite://") {
+            return Err(AppError::DatabaseError(DatabaseError::InvalidConfig(
+                format!(
+                    "Unsupported database_url '{database_url}'. Expected a URL starting with 'sqlite://'.",
+                ),
+            )));
+        }
 
-        Migrator::up(&db, None).await.unwrap();//TODO: IMPOROVE
-        Ok(db)
+        let opt = ConnectOptions::new(database_url.to_owned());
+
+        let conn = SeaOrmDatabase::connect(opt).await.map_err(|err| {
+            AppError::DatabaseError(DatabaseError::ConnectionFailed(err.to_string()))
+        })?;
+
+
+        Migrator::up(&conn, None).await.unwrap();//TODO: IMPROVE error handling
+
+        Ok(conn)
     }
 }

@@ -1,18 +1,15 @@
 use clap::Command;
 use lib_toolbox::{
     commands::{
-        generate::generate_command, script::script_command, self_cmd::self_command,
-        store::store_command,
+        bookmarks::bookmarks_command, generate::generate_command, script::script_command,
+        self_cmd::self_command,
     },
-    config::db::Database,
     errors::app::AppError,
     toolbox::parse_commands,
 };
 
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
-    let db = Database::init().await?;
-    
     let matches = Command::new("toolbox")
         .display_name("Dev toolbox")
         .about("lightweight extensible, command line toolchain for software builders")
@@ -20,12 +17,12 @@ async fn main() -> Result<(), AppError> {
         .arg_required_else_help(true)
         .allow_external_subcommands(true)
         .subcommand(self_command())
-        .subcommand(store_command())
+        .subcommand(bookmarks_command())
         .subcommand(generate_command())
         .subcommand(script_command())
         .get_matches();
 
-    parse_commands(matches, &db);
+    parse_commands(matches).await;
 
     Ok(())
 }

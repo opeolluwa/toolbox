@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     config::app::ToolboxConfig,
-    constants::{APP_RUNTIME_DATABASE_PATH, APP_RUNTIME_SCRIPTS_DIR},
+    constants::{APP_RUNTIME_DATABASE_PATH, APP_RUNTIME_SCRIPTS_DIR, SCRIPTS_DIR},
     errors::file_system::FileSystemError,
     helpers::console::LogMessage,
 };
@@ -177,5 +177,22 @@ pub fn add_script_command(script_file_path: &Path) -> Result<(), FileSystemError
             ));
             Err(FileSystemError::IoError(e))
         }
+    }
+}
+
+
+pub fn list_script() {
+
+    let paths = fs::read_dir(SCRIPTS_DIR.as_str()).unwrap();
+
+    for entry in paths {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        let name = path
+            .file_name()
+            .unwrap()
+            .to_string_lossy();
+
+        println!("file name: {}", name);
     }
 }

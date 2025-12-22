@@ -1,7 +1,10 @@
 use ribir::prelude::*;
-use sea_orm::DatabaseConnection;
 
-pub fn exec_gui(_db: &DatabaseConnection) {
+// use crate::config::db::Database;
+
+pub async fn exec_gui() {    // let config = ToolboxConfig::load()?;
+    // let _db = Database::init().await.unwrap();
+    
     let counter = fn_widget! {
       let cnt = Stateful::new(0);
       @Row {
