@@ -4,7 +4,7 @@ use clap::ArgMatches;
 
 use crate::{
     helpers::console::LogMessage,
-    workers::scripts::{add_script_command, configure_scripts, execute_custom_script},
+    workers::scripts::{add_script_command, configure_scripts, execute_custom_script, list_script},
 };
 
 pub fn parse_script_options(sub_matches: &ArgMatches) {
@@ -48,6 +48,10 @@ pub fn parse_script_options(sub_matches: &ArgMatches) {
             }
         }
 
+        Some(("list", _)) => {
+            list_script();
+        }
+        
         Some((other, _)) => {
             LogMessage::warning(&format!("Unknown subcommand '{}'", other));
             std::process::exit(1);

@@ -19,8 +19,12 @@ pub fn script_command() -> Command {
 
     let execute_scripts_cmd = Command::new("execute")
         .about("execute a dynamic script")
-        .aliases(["-e", "exec","exe"])
+        .aliases(["-e", "exec", "exe"])
         .arg(Arg::new("name").help("name of the script"));
+
+    let list_script_cmd = Command::new("list")
+        .about("list all existing scripts")
+        .aliases(["ls"]);
 
     Command::new("script")
         .visible_aliases(["sc", "-sc"])
@@ -29,4 +33,5 @@ pub fn script_command() -> Command {
         .subcommand(add_scripts_cmd)
         .subcommand(remove_scripts_cmd)
         .subcommand(execute_scripts_cmd)
+        .subcommand(list_script_cmd)
 }

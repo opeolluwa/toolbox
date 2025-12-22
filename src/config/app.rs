@@ -1,16 +1,29 @@
+use std::path::PathBuf;
+
 use serde::{Deserialize, Serialize};
 
-use crate::errors::file_system::FileSystemError;
+use crate::{constants::DATABASE_URL, errors::file_system::FileSystemError};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ToolboxConfig {
     pub scripts: ScriptConfig,
+    pub env: EnvConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ScriptConfig {
     pub runner: String,
     pub source: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EnvConfig {
+    pub database_url: String,
+}
+impl Default for EnvConfig {
+    fn default() -> Self {
+        Self { database_url: DATABASE_URL.to_string() }
+    }
 }
 
 impl Default for ScriptConfig {
@@ -43,5 +56,11 @@ impl ToolboxConfig {
 
     pub fn create(&self) -> Result<(), FileSystemError> {
         unimplemented!()
+    }
+
+    pub fn file_path(&self) -> Result<PathBuf, FileSystemError> {
+        let path = confy::get_configuration_file_path(Self::APP_NAME, None)?;
+
+        Ok(path)
     }
 }

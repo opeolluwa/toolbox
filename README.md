@@ -16,9 +16,8 @@ cargo install --path .
 
 ### Usage
 
-The command is `tb` 
-
+The command is `tb`
 
 ### Configuration
 
-- Config path : `    // $HOME/.config/dev_toolbox/default-config.toml`
+- Config path : `$HOME/.config/dev_toolbox/default-config.toml`
