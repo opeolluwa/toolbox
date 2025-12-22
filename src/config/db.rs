@@ -4,7 +4,10 @@ use sea_orm::{ConnectOptions, Database as SeaOrmDatabase, DatabaseConnection};
 
 use migration::{Migrator, MigratorTrait};
 
-use crate::config::app::ToolboxConfig;
+use crate::{
+    config::app::ToolboxConfig,
+    errors::{app::AppError, database::DatabaseError},
+};
 
 pub struct Database;
 
@@ -26,9 +29,9 @@ impl Database {
 
         let db = SeaOrmDatabase::connect(opt)
             .await
-            .map_err(|err| AppError::StartupError(err.to_string()))?;
+            .map_err(|err| DatabaseError::OperationFailed(err.to_string()))?;
 
-        Migrator::up(&db, None).await?;
+        Migrator::up(&db, None).await.unwrap();//TODO: IMPOROVE
         Ok(db)
     }
 }

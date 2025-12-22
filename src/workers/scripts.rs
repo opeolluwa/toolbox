@@ -7,10 +7,12 @@ use std::{
 
 use crate::{
     config::app::ToolboxConfig,
-    constants::{APP_RUNTIME_CONFIG_FILE_NAME, APP_RUNTIME_SCRIPTS_DIR},
+    constants::{APP_RUNTIME_DATABASE_PATH, APP_RUNTIME_SCRIPTS_DIR},
     errors::file_system::FileSystemError,
-    helpers::{console::LogMessage, file_system::file_exists_in_path},
+    helpers::console::LogMessage,
 };
+
+use dialoguer::Input;
 
 /// create a folder .dev_toolbox in the default home directory
 pub fn configure_scripts(_overwrite: bool) -> Result<(), FileSystemError> {
@@ -25,14 +27,42 @@ pub fn configure_scripts(_overwrite: bool) -> Result<(), FileSystemError> {
         APP_RUNTIME_SCRIPTS_DIR
     );
 
-    //TODO: use custom path to save config
-    // let config_file_path = format!("{}/{}", config_dir, APP_RUNTIME_CONFIG_FILE_NAME);
-    // $HOME/.config/dev_toolbox/default-config.toml
+    let database_dir = format!(
+        "{}/{}",
+        home_dir.to_str().unwrap_or_default(),
+        APP_RUNTIME_DATABASE_PATH
+    );
+
     fs::create_dir_all(&scripts_dir)?;
-    if !file_exists_in_path(Path::new(&scripts_dir), APP_RUNTIME_CONFIG_FILE_NAME) {
-        let cfg = ToolboxConfig::new();
-        cfg.save()?;
-    }
+    fs::create_dir_all(&database_dir)?;
+
+    let database_url = format!(
+        "sqlite://{}/{}",
+        home_dir.to_str().unwrap_or_default(),
+        APP_RUNTIME_DATABASE_PATH
+    );
+
+    let script_runner: String = Input::new()
+        .with_prompt("Your script runner?")
+        .default("python3".to_string())
+        .interact_text()?;
+
+    let scripts_path: String = Input::new()
+        .with_prompt("Where do you want to stor your scripts")
+        .default(scripts_dir)
+        .interact_text()?;
+
+    let mut cfg = ToolboxConfig::new();
+    cfg.env.database_url = database_url;
+    cfg.scripts.runner = script_runner;
+    cfg.scripts.source = scripts_path;
+
+    cfg.save()?;
+
+    let binding = cfg.file_path()?;
+    let config_path = binding.as_path().to_str();
+
+    LogMessage::success(&format!(" configuration saved to {:#?}", config_path));
 
     Ok(())
 }

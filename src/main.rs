@@ -4,11 +4,15 @@ use lib_toolbox::{
         generate::generate_command, script::script_command, self_cmd::self_command,
         store::store_command,
     },
+    config::db::Database,
     errors::app::AppError,
     toolbox::parse_commands,
 };
 
-fn main() -> Result<(), AppError> {
+#[tokio::main]
+async fn main() -> Result<(), AppError> {
+    let db = Database::init().await?;
+    
     let matches = Command::new("toolbox")
         .display_name("Dev toolbox")
         .about("lightweight extensible, command line toolchain for software builders")
@@ -21,8 +25,7 @@ fn main() -> Result<(), AppError> {
         .subcommand(script_command())
         .get_matches();
 
-
-    parse_commands(matches);
+    parse_commands(matches, &db);
 
     Ok(())
 }

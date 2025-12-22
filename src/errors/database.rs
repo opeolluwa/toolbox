@@ -1,3 +1,4 @@
+use sea_orm::DbErr;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -5,4 +6,7 @@ use thiserror::Error;
 pub enum DatabaseError {
     #[error("{0}")]
     OperationFailed(String),
+
+    #[error(transparent)]
+    SqlxError(#[from] DbErr),
 }
