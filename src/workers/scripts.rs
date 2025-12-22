@@ -48,7 +48,7 @@ pub fn configure_scripts(_overwrite: bool) -> Result<(), FileSystemError> {
         .interact_text()?;
 
     let scripts_path: String = Input::new()
-        .with_prompt("Where do you want to stor your scripts")
+        .with_prompt("Where do you want to store your scripts")
         .default(scripts_dir)
         .interact_text()?;
 
